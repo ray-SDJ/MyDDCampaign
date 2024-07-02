@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Suggested code may be subject to a license. Learn more: ~LicenseLog:2552979264. */
+html  {
+  background-image: url('../resources/photos/unnamed.png')
+
+}

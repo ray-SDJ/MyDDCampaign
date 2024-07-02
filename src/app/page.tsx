@@ -3,8 +3,10 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <div className="container">
-      <CampaignForm />
+    <div className="items-center justify-center min-h-screen flex flex-col">
+      <div >
+        <CampaignForm />
+      </div>
     </div>
   );
 }

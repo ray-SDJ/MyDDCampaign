@@ -2,6 +2,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { locationData } from "@/resources/Locations/locations";
+import geminiRun from "../../utils/google";
 
 interface Monster {
   name: string;
@@ -16,17 +17,22 @@ export default function CampaignForm() {
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedNation, setSelectedNation] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedWeather, setSelectedWeather] = useState<string | null>(null);
+  const [selectedTimeOfDay, setSelectedTimeOfDay] = useState<string | null>(null);
+  const [generatedPrompt, setGeneratedPrompt] = useState<string | null>(null);
+
 
   const handleSearch = async () => {
     setIsLoading(true);
-    setErrorMessage(""); // Clear previous errors
+    setErrorMessage(""); 
 
     try {
       const encodedMonsterName = encodeURIComponent(monsterName.toLowerCase());
       const response = await axios.get(
         `https://www.dnd5eapi.co/api/monsters/${encodedMonsterName}`
       );
-      setMonsterData(response.data); // Directly set the monster data
+      setMonsterData(response.data); 
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 404) {
@@ -59,8 +65,34 @@ export default function CampaignForm() {
     }
   };
 
+  const handleCategoryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedCategory(event.target.value);
+  };
+  const handleWeatherChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedWeather(event.target.value);
+  };
+  const handleTimeOfDayChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedTimeOfDay(event.target.value);
+  };
+
+  const formData = {
+    nation: selectedNation,
+    city: selectedCity,
+    monster: monsterData?.name || "", 
+    category: selectedCategory,
+    reward: (document.getElementById('reward') as HTMLInputElement)?.value || "", 
+    weather: selectedWeather,
+    timeOfDay: selectedTimeOfDay,
+  };
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault(); 
+    const prompt = geminiRun(formData);
+    setGeneratedPrompt(prompt)
+  };
+
   return (
-    <div className="rounded shadow-md mx-auto bg-gray-50 p-6">
+    <div className="rounded-lg shadow-md mx-auto bg-gray-50 p-6">
       <div className="flex justify-center font-MedievalSharp-Regular font-extrabold text-2xl">
         <h1>Create Campaign</h1>
       </div>
@@ -132,8 +164,11 @@ export default function CampaignForm() {
           <h1 className="font-bold text-lg">Choose Category</h1>
           <input
             type="radio"
-            className="form-control"
+            className="form-control my-2"
             id="campaignCategoryHeist"
+            value="Heist"
+            checked={selectedCategory === "Heist"}
+            onChange={handleCategoryChange}
           />
           <label htmlFor="campaignCategoryHeist">Heist</label>
           <br />
@@ -141,6 +176,9 @@ export default function CampaignForm() {
             type="radio"
             className="form-control"
             id="campaignCategoryExploration"
+            value="Exploration"
+            checked={selectedCategory === "Exploration"}
+            onChange={handleCategoryChange}
           />
           <label htmlFor="campaignCategoryExploration">Exploration</label>
           <br />
@@ -148,6 +186,9 @@ export default function CampaignForm() {
             type="radio"
             className="form-control"
             id="campaignCategoryJob"
+            value="Hired Job"
+            checked={selectedCategory === "Hired Job"}
+            onChange={handleCategoryChange}
           />
           <label htmlFor="campaignCategoryJob">Hired Job</label>
           <br />
@@ -155,8 +196,11 @@ export default function CampaignForm() {
             type="radio"
             className="form-control"
             id="campaignCategoryBounty"
+            value="Bounty"
+            checked={selectedCategory === "Bounty"}
+            onChange={handleCategoryChange}
           />
-          <label htmlFor="campaignCategoryBounty">Bount</label>
+          <label htmlFor="campaignCategoryBounty">Bounty</label>
         </div>
         <div className="my-2">
           <h1 className="font-bold text-lg">Choose Reward</h1>
@@ -165,50 +209,73 @@ export default function CampaignForm() {
             className="form-control"
             id="reward"
             placeholder="Rewards can be gold, revenge,spells, treasure and relic"
-            className="border-4 rounded-lg border-red-600 w-4/5"
+            className="rounded-lg border-red-600 w-4/5"
           />
         </div>
         <div className="my-2">
           <h1 className="font-bold text-lg">Choose Weather</h1>
-          <input type="radio" className="form-control" id="clear-skies" />
+          <input type="radio" className="form-control " id="clear-skies" value="Clear Skies"
+              checked={selectedWeather === "Clear Skies"}
+              onChange={handleWeatherChange} />
           <label htmlFor="clear-skies">Clear Skies</label>
           <br />
-          <input type="radio" className="form-control" id="cloudy-skies" />
+          <input type="radio" className="form-control" id="cloudy-skies" value="Cloudy"
+              checked={selectedWeather === "Cloudy"}
+              onChange={handleWeatherChange}/>
           <label htmlFor="cloudy-skies">Cloudy</label>
           <br />
-          <input type="radio" className="form-control" id="heavy-snowfall" />
+          <input type="radio" className="form-control" id="heavy-snowfall" value="Heavy Snowfall"
+              checked={selectedWeather === "Heavy Snowfall"}
+              onChange={handleWeatherChange}/>
           <label htmlFor="heavy-snowfall">Heavy Snowfall</label>
           <br />
-          <input type="radio" className="form-control" id="heavy-rain" />
+          <input type="radio" className="form-control" id="heavy-rain" value="Heavy Rainfall"
+              checked={selectedWeather === "Heavy Rainfall"}
+              onChange={handleWeatherChange}/>
           <label htmlFor="heavy-rain">Heavy Rainfall</label>
           <br />
-          <input type="radio" className="form-control" id="light-fog" />
+          <input type="radio" className="form-control" id="light-fog" value="Light Fog"
+              checked={selectedWeather === "Light Fog"}
+              onChange={handleWeatherChange}/>
           <label htmlFor="light-fog">Light Fog</label>
           <br />
-          <input type="radio" className="form-control" id="heavy-fog" />
+          <input type="radio" className="form-control" id="heavy-fog" value="Heavy Fog"
+              checked={selectedWeather === "Heavy Fog"}
+              onChange={handleWeatherChange}/>
           <label htmlFor="heavy-fog">Heavy Fog</label>
           <br />
         </div>
         <div className="my-2">
           <h1 className="font-bold text-lg">Choose Time of Day</h1>
-          <input type="radio" className="form-control" id="day" />
+          <input type="radio" className="form-control" id="day" value="Day"
+              checked={selectedTimeOfDay === "Day"}
+              onChange={handleTimeOfDayChange}/>
           <label htmlFor="day">Day</label>
           <br />
-          <input type="radio" className="form-control" id="afternoon" />
+          <input type="radio" className="form-control" id="afternoon" value="Afternoon"
+              checked={selectedTimeOfDay === "Afternoon"}
+              onChange={handleTimeOfDayChange}/>
           <label htmlFor="afternoon">Afternoon</label>
           <br />
-          <input type="radio" className="form-control" id="night" />
+          <input type="radio" className="form-control" id="night" value="Afternoon"
+              checked={selectedTimeOfDay === "Afternoon"}
+              onChange={handleTimeOfDayChange}/>
           <label htmlFor="night">Night</label>
           <br />
-          <input type="radio" className="form-control" id="solar-eclipse" />
+          <input type="radio" className="form-control" id="solar-eclipse" value="Solar Eclipse"
+              checked={selectedTimeOfDay === "Solar Eclipse"}
+              onChange={handleTimeOfDayChange}/>
           <label htmlFor="solar-eclipse">Solar Eclipse</label>
           <br />
-          <input type="radio" className="form-control" id="lunar-eclipse" />
+          <input type="radio" className="form-control" id="lunar-eclipse" value="Lunar Eclipse"
+              checked={selectedTimeOfDay === "Lunar Eclipse"}
+              onChange={handleTimeOfDayChange}/>
           <label htmlFor="lunar-eclipse">Lunar Eclipse</label>
           <br />
         </div>
-        <div>
+        <div className="flex justify-center">
           <button
+            onClick={handleSubmit}
             type="submit"
             className="relative inline-flex h-12 overflow-hidden rounded-full p-[1px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
           >
@@ -219,6 +286,12 @@ export default function CampaignForm() {
           </button>
         </div>
       </form>
+      {generatedPrompt && (
+  <div className="my-2">
+    <h2 className="font-bold text-lg">Generated Prompt:</h2>
+    <pre>{generatedPrompt}</pre> 
+  </div>
+)}
     </div>
   );
 }

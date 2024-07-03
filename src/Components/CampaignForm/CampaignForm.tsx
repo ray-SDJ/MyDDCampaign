@@ -25,14 +25,23 @@ export default function CampaignForm() {
 
   const handleSearch = async () => {
     setIsLoading(true);
-    setErrorMessage(""); 
-
+    setErrorMessage("");
     try {
       const encodedMonsterName = encodeURIComponent(monsterName.toLowerCase());
       const response = await axios.get(
-        `https://www.dnd5eapi.co/api/monsters/${encodedMonsterName}`
+        `https://www.dnd5eapi.co/api/monsters/`
       );
-      setMonsterData(response.data); 
+      const resultMonsterList = response.data.results;
+      const matchedMonster = resultMonsterList.find(
+        (monster: any) => monster.name.toLowerCase() === encodedMonsterName 
+      );
+      
+      if (matchedMonster) {
+        setMonsterData(matchedMonster); 
+      } else {
+        setErrorMessage("Monster not found.");
+      }
+      
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 404) {
@@ -46,7 +55,7 @@ export default function CampaignForm() {
     } finally {
       setIsLoading(false);
     }
-  };
+
   useEffect(() => {
     const firstNation = Object.keys(locationData)[0];
     setSelectedNation(firstNation);
@@ -85,9 +94,9 @@ export default function CampaignForm() {
     timeOfDay: selectedTimeOfDay,
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault(); 
-    const prompt = geminiRun(formData);
+    const prompt = await geminiRun(formData);
     setGeneratedPrompt(prompt)
   };
 
@@ -206,7 +215,6 @@ export default function CampaignForm() {
           <h1 className="font-bold text-lg">Choose Reward</h1>
           <input
             type="text"
-            className="form-control"
             id="reward"
             placeholder="Rewards can be gold, revenge,spells, treasure and relic"
             className="rounded-lg border-red-600 w-4/5"
@@ -294,4 +302,5 @@ export default function CampaignForm() {
 )}
     </div>
   );
+}
 }

@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  background-image: url("../../resources/photos/unnamed.png");
+}
+
+@font-face {
+  font-family: "MedievalSharp-Regular";
+  src: url(../../resources/fonts/converted-fonts/MedievalSharp-Regular.woff2)
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+}
+
+input {
+  background-color: white;
+  text: black;
+}

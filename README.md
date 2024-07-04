@@ -1,3 +1,20 @@
+D&D Campaign Generator
+  Unleash Your Creativity with AI-Powered Adventures
+  Welcome to the D&D Campaign Generator! This Next.js application empowers Dungeon Masters to craft unique and engaging campaigns with the help of Google's Gemini AI. Simply     fill out a few details about your desired adventure, and let the AI do the heavy lifting, generating a tailored campaign outline complete with intriguing storylines,         
+  challenging encounters, and memorable locations.
+
+Features
+  Intuitive Form: An easy-to-use form guides you through selecting the key elements of your campaign:
+  Nation and City
+  Main Boss Monster
+  Campaign Category (Heist, Exploration, etc.)
+  Desired Reward
+  Weather Conditions
+  Time of Day
+  AI-Powered Generation: Leverages Google's Gemini to generate a detailed campaign outline based on your input.
+  Customization: You'll have the option to fine-tune the generated prompt or even start from scratch.
+  Seamless Integration: Built with Next.js for a smooth user experience and easy deployment.
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started

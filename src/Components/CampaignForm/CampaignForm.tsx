@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { locationData } from "@/resources/Locations/locations";
 import geminiRun from "../../utils/google";
 
@@ -19,49 +19,17 @@ export default function CampaignForm() {
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedWeather, setSelectedWeather] = useState<string | null>(null);
-  const [selectedTimeOfDay, setSelectedTimeOfDay] = useState<string | null>(null);
+  const [selectedTimeOfDay, setSelectedTimeOfDay] = useState<string | null>(
+    null
+  );
   const [generatedPrompt, setGeneratedPrompt] = useState<string | null>(null);
-
-
-  const handleSearch = async () => {
-    setIsLoading(true);
-    setErrorMessage("");
-    try {
-      const encodedMonsterName = encodeURIComponent(monsterName.toLowerCase());
-      const response = await axios.get(
-        `https://www.dnd5eapi.co/api/monsters/`
-      );
-      const resultMonsterList = response.data.results;
-      const matchedMonster = resultMonsterList.find(
-        (monster: any) => monster.name.toLowerCase() === encodedMonsterName 
-      );
-      
-      if (matchedMonster) {
-        setMonsterData(matchedMonster); 
-      } else {
-        setErrorMessage("Monster not found.");
-      }
-      
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 404) {
-          setErrorMessage("Monster not found.");
-        } else {
-          setErrorMessage("Error fetching monster data.");
-        }
-      } else {
-        setErrorMessage("An unexpected error occurred.");
-      }
-    } finally {
-      setIsLoading(false);
-    }
+  const rewardRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const firstNation = Object.keys(locationData)[0];
     setSelectedNation(firstNation);
     setSelectedCity(Object.keys(locationData[firstNation])[0]);
   }, []);
-
   const handleNationChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedNation = event.target.value;
     setSelectedNation(selectedNation);
@@ -80,24 +48,56 @@ export default function CampaignForm() {
   const handleWeatherChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedWeather(event.target.value);
   };
-  const handleTimeOfDayChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTimeOfDayChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setSelectedTimeOfDay(event.target.value);
   };
 
   const formData = {
     nation: selectedNation,
     city: selectedCity,
-    monster: monsterData?.name || "", 
+    monster: monsterData?.name || "",
     category: selectedCategory,
-    reward: (document.getElementById('reward') as HTMLInputElement)?.value || "", 
+    reward: rewardRef.current?.value || "",
     weather: selectedWeather,
     timeOfDay: selectedTimeOfDay,
   };
+  const handleSearch = async () => {
+    setIsLoading(true);
+    setErrorMessage("");
+    try {
+      const encodedMonsterName = encodeURIComponent(monsterName.toLowerCase());
+      const response = await axios.get(`https://www.dnd5eapi.co/api/monsters/`);
+      const resultMonsterList = response.data.results;
+      const matchedMonster = resultMonsterList.find(
+        (monster: any) => monster.name.toLowerCase() === encodedMonsterName
+      );
+
+      if (matchedMonster) {
+        setMonsterData(matchedMonster);
+      } else {
+        setErrorMessage("Monster not found.");
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 404) {
+          setErrorMessage("Monster not found.");
+        } else {
+          setErrorMessage("Error fetching monster data.");
+        }
+      } else {
+        setErrorMessage("An unexpected error occurred.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault(); 
+    event.preventDefault();
     const prompt = await geminiRun(formData);
-    setGeneratedPrompt(prompt)
+    setGeneratedPrompt(prompt);
   };
 
   return (
@@ -216,68 +216,124 @@ export default function CampaignForm() {
           <input
             type="text"
             id="reward"
+            ref={rewardRef}
             placeholder="Rewards can be gold, revenge,spells, treasure and relic"
             className="rounded-lg border-red-600 w-4/5"
           />
         </div>
         <div className="my-2">
           <h1 className="font-bold text-lg">Choose Weather</h1>
-          <input type="radio" className="form-control " id="clear-skies" value="Clear Skies"
-              checked={selectedWeather === "Clear Skies"}
-              onChange={handleWeatherChange} />
+          <input
+            type="radio"
+            className="form-control "
+            id="clear-skies"
+            value="Clear Skies"
+            checked={selectedWeather === "Clear Skies"}
+            onChange={handleWeatherChange}
+          />
           <label htmlFor="clear-skies">Clear Skies</label>
           <br />
-          <input type="radio" className="form-control" id="cloudy-skies" value="Cloudy"
-              checked={selectedWeather === "Cloudy"}
-              onChange={handleWeatherChange}/>
+          <input
+            type="radio"
+            className="form-control"
+            id="cloudy-skies"
+            value="Cloudy"
+            checked={selectedWeather === "Cloudy"}
+            onChange={handleWeatherChange}
+          />
           <label htmlFor="cloudy-skies">Cloudy</label>
           <br />
-          <input type="radio" className="form-control" id="heavy-snowfall" value="Heavy Snowfall"
-              checked={selectedWeather === "Heavy Snowfall"}
-              onChange={handleWeatherChange}/>
+          <input
+            type="radio"
+            className="form-control"
+            id="heavy-snowfall"
+            value="Heavy Snowfall"
+            checked={selectedWeather === "Heavy Snowfall"}
+            onChange={handleWeatherChange}
+          />
           <label htmlFor="heavy-snowfall">Heavy Snowfall</label>
           <br />
-          <input type="radio" className="form-control" id="heavy-rain" value="Heavy Rainfall"
-              checked={selectedWeather === "Heavy Rainfall"}
-              onChange={handleWeatherChange}/>
+          <input
+            type="radio"
+            className="form-control"
+            id="heavy-rain"
+            value="Heavy Rainfall"
+            checked={selectedWeather === "Heavy Rainfall"}
+            onChange={handleWeatherChange}
+          />
           <label htmlFor="heavy-rain">Heavy Rainfall</label>
           <br />
-          <input type="radio" className="form-control" id="light-fog" value="Light Fog"
-              checked={selectedWeather === "Light Fog"}
-              onChange={handleWeatherChange}/>
+          <input
+            type="radio"
+            className="form-control"
+            id="light-fog"
+            value="Light Fog"
+            checked={selectedWeather === "Light Fog"}
+            onChange={handleWeatherChange}
+          />
           <label htmlFor="light-fog">Light Fog</label>
           <br />
-          <input type="radio" className="form-control" id="heavy-fog" value="Heavy Fog"
-              checked={selectedWeather === "Heavy Fog"}
-              onChange={handleWeatherChange}/>
+          <input
+            type="radio"
+            className="form-control"
+            id="heavy-fog"
+            value="Heavy Fog"
+            checked={selectedWeather === "Heavy Fog"}
+            onChange={handleWeatherChange}
+          />
           <label htmlFor="heavy-fog">Heavy Fog</label>
           <br />
         </div>
         <div className="my-2">
           <h1 className="font-bold text-lg">Choose Time of Day</h1>
-          <input type="radio" className="form-control" id="day" value="Day"
-              checked={selectedTimeOfDay === "Day"}
-              onChange={handleTimeOfDayChange}/>
+          <input
+            type="radio"
+            className="form-control"
+            id="day"
+            value="Day"
+            checked={selectedTimeOfDay === "Day"}
+            onChange={handleTimeOfDayChange}
+          />
           <label htmlFor="day">Day</label>
           <br />
-          <input type="radio" className="form-control" id="afternoon" value="Afternoon"
-              checked={selectedTimeOfDay === "Afternoon"}
-              onChange={handleTimeOfDayChange}/>
+          <input
+            type="radio"
+            className="form-control"
+            id="afternoon"
+            value="Afternoon"
+            checked={selectedTimeOfDay === "Afternoon"}
+            onChange={handleTimeOfDayChange}
+          />
           <label htmlFor="afternoon">Afternoon</label>
           <br />
-          <input type="radio" className="form-control" id="night" value="Afternoon"
-              checked={selectedTimeOfDay === "Afternoon"}
-              onChange={handleTimeOfDayChange}/>
+          <input
+            type="radio"
+            className="form-control"
+            id="night"
+            value="Afternoon"
+            checked={selectedTimeOfDay === "Afternoon"}
+            onChange={handleTimeOfDayChange}
+          />
           <label htmlFor="night">Night</label>
           <br />
-          <input type="radio" className="form-control" id="solar-eclipse" value="Solar Eclipse"
-              checked={selectedTimeOfDay === "Solar Eclipse"}
-              onChange={handleTimeOfDayChange}/>
+          <input
+            type="radio"
+            className="form-control"
+            id="solar-eclipse"
+            value="Solar Eclipse"
+            checked={selectedTimeOfDay === "Solar Eclipse"}
+            onChange={handleTimeOfDayChange}
+          />
           <label htmlFor="solar-eclipse">Solar Eclipse</label>
           <br />
-          <input type="radio" className="form-control" id="lunar-eclipse" value="Lunar Eclipse"
-              checked={selectedTimeOfDay === "Lunar Eclipse"}
-              onChange={handleTimeOfDayChange}/>
+          <input
+            type="radio"
+            className="form-control"
+            id="lunar-eclipse"
+            value="Lunar Eclipse"
+            checked={selectedTimeOfDay === "Lunar Eclipse"}
+            onChange={handleTimeOfDayChange}
+          />
           <label htmlFor="lunar-eclipse">Lunar Eclipse</label>
           <br />
         </div>
@@ -295,12 +351,13 @@ export default function CampaignForm() {
         </div>
       </form>
       {generatedPrompt && (
-  <div className="my-2">
-    <h2 className="font-bold text-lg">Generated Prompt:</h2>
-    <pre>{generatedPrompt}</pre> 
-  </div>
-)}
+        <div className="rounded-lg shadow-md mx-auto bg-gray-50 p-6 my-2  ">
+          <div>
+            <h2 className="font-bold text-lg ">Generated Prompt:</h2>
+            <pre>{generatedPrompt}</pre>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
 }
